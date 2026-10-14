@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agent Vault - Digital Cards Note Taker</title>
+  <title>Agent Vault - Digital Cards & Shift Note Taker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Smooth bidirectional text rendering for Arabic (RTL) & English (LTR) */
@@ -18,7 +18,7 @@
   <div id="auth-container" class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-slate-700">
       <h1 class="text-2xl font-bold text-center text-emerald-400 mb-2">Agent Note Vault</h1>
-      <p class="text-slate-400 text-center text-sm mb-6">Confidential Call Center Scratchpad</p>
+      <p class="text-slate-400 text-center text-sm mb-6">Confidential Call Center Scratchpad & Shift Log</p>
       
       <div id="auth-error" class="hidden bg-red-900/50 border border-red-500 text-red-200 text-sm p-3 rounded-lg mb-4"></div>
 
@@ -48,15 +48,16 @@
   </div>
 
   <!-- MAIN APP SCREEN (Hidden until logged in) -->
-  <div id="app-container" class="hidden max-w-6xl mx-auto p-4 md:p-6">
+  <div id="app-container" class="hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    
     <!-- Header -->
-    <header class="flex flex-wrap justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700 mb-6 gap-4">
+    <header class="flex flex-wrap justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700 gap-4">
       <div>
-        <h1 class="text-xl font-bold text-emerald-400">Digital Cards Shift Notes</h1>
+        <h1 class="text-xl font-bold text-emerald-400">Digital Cards & Shift Workspace</h1>
         <p id="user-email" class="text-xs text-slate-400"></p>
       </div>
       <div class="flex items-center gap-3">
-        <input type="text" id="search-input" dir="auto" placeholder="Search Order ID, Card, or Note... / بحث"
+        <input type="text" id="search-input" dir="auto" placeholder="Search tickets or shift logs... / بحث"
           class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:border-emerald-500 w-64" />
         <button id="logout-btn" class="bg-red-600/80 hover:bg-red-600 text-white text-sm px-4 py-1.5 rounded-lg transition">
           Sign Out
@@ -64,8 +65,72 @@
       </div>
     </header>
 
+    <!-- TOP SECTION: LIVE SHIFT SCRATCHPAD & IMPORTANT SHIFT EVENTS -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- 1. Quick Auto-Saving Scratchpad -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-base font-semibold text-amber-400 flex items-center gap-2">
+              <span>⚡ Quick Shift Scratchpad (مسودة سريعة للشفت)</span>
+            </h2>
+            <span id="scratchpad-status" class="text-xs text-slate-400">Synced with Cloud</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">
+            Type anything here during a call or chat (codes, phone numbers, reminders, shift thoughts). It auto-saves immediately.
+          </p>
+          <textarea id="scratchpad-area" rows="6" dir="auto"
+            placeholder="اكتب ملاحظاتك السريعة هنا...&#10;e.g. Zain recharge delay started at 2:15 PM, supervisor informed..."
+            class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+        </div>
+        <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-700/60">
+          <span class="text-[11px] text-slate-500">Auto RTL/LTR enabled</span>
+          <div class="flex gap-2">
+            <button id="copy-scratchpad-btn" type="button" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition">
+              Copy Scratchpad
+            </button>
+            <button id="clear-scratchpad-btn" type="button" class="text-xs bg-red-950/60 hover:bg-red-900/70 text-red-300 border border-red-800/50 px-3 py-1.5 rounded-lg transition">
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Shift Events, Problems & Handover Log -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col">
+        <h2 class="text-base font-semibold text-sky-400 mb-2">
+          📋 Shift Events & Problems Log (سجل أحداث ومشاكل الشفت)
+        </h2>
+        <form id="shift-event-form" class="flex flex-col sm:flex-row gap-2 mb-4">
+          <select id="shift-event-type"
+            class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+            <option value="⚠️ Problem / Outage">⚠️ Problem / Outage (مشكلة عامة)</option>
+            <option value="📌 Important Event">📌 Important Event (حدث مهم)</option>
+            <option value="🔄 Shift Handover">🔄 Shift Handover (تسليم شفت)</option>
+            <option value="📝 Shift Rule / Update">📝 Update / Instruction (توجيه جديد)</option>
+          </select>
+          <input type="text" id="shift-event-text" required dir="auto"
+            placeholder="Write what happened in the shift... / سجل حدث أو مشكلة خلال الشفت"
+            class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:border-sky-500" />
+          <button type="submit"
+            class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition whitespace-nowrap">
+            + Log Event
+          </button>
+        </form>
+
+        <!-- Shift Events List -->
+        <div id="shift-events-list" class="space-y-2 max-h-44 overflow-y-auto pr-1">
+          <p class="text-slate-500 text-xs">Loading shift events...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM SECTION: CUSTOMER TICKET NOTES -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- LEFT COLUMN: NEW NOTE FORM -->
+      
+      <!-- LEFT COLUMN: NEW TICKET NOTE FORM -->
       <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-fit">
         <h2 class="text-lg font-semibold mb-4 text-emerald-300">New Ticket / Call Note</h2>
         <form id="note-form" class="space-y-4">
@@ -112,7 +177,7 @@
               <label class="text-xs text-slate-400">Note Details (تفاصيل الملاحظة - عربي / English)</label>
               <span class="text-[10px] text-slate-500">Auto RTL/LTR</span>
             </div>
-            <textarea id="note-content" rows="5" required dir="auto"
+            <textarea id="note-content" rows="4" required dir="auto"
               placeholder="اكتب ملاحظاتك هنا بالعربي أو الإنجليزي...&#10;Example: Customer sent screenshot of error, Serial S/N checked."
               class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:border-emerald-500 leading-relaxed"></textarea>
           </div>
@@ -124,15 +189,15 @@
 
           <button type="submit"
             class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg transition shadow-lg">
-            Save Confidential Note
+            Save Ticket Note
           </button>
         </form>
       </div>
 
-      <!-- RIGHT COLUMN: SAVED NOTES LIST -->
+      <!-- RIGHT COLUMN: SAVED TICKET NOTES LIST -->
       <div class="lg:col-span-2 space-y-4">
         <div class="flex justify-between items-center">
-          <h2 class="text-lg font-semibold text-slate-200">Your Saved Notes</h2>
+          <h2 class="text-lg font-semibold text-slate-200">Saved Customer Ticket Notes</h2>
           <div class="flex gap-2">
             <button id="filter-all" class="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md">All</button>
             <button id="filter-pending" class="text-xs bg-slate-800 border border-slate-700 text-amber-400 px-3 py-1 rounded-md">Pending Follow-up Only</button>
@@ -142,6 +207,7 @@
           <p class="text-slate-500 text-sm">Loading your notes...</p>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -159,6 +225,8 @@
       getFirestore, 
       collection, 
       addDoc, 
+      setDoc,
+      getDoc,
       query, 
       where, 
       onSnapshot, 
@@ -190,6 +258,18 @@
     const signupBtn = document.getElementById("signup-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const userEmailSpan = document.getElementById("user-email");
+
+    // Scratchpad Elements
+    const scratchpadArea = document.getElementById("scratchpad-area");
+    const scratchpadStatus = document.getElementById("scratchpad-status");
+    const copyScratchpadBtn = document.getElementById("copy-scratchpad-btn");
+    const clearScratchpadBtn = document.getElementById("clear-scratchpad-btn");
+
+    // Shift Events Elements
+    const shiftEventForm = document.getElementById("shift-event-form");
+    const shiftEventsList = document.getElementById("shift-events-list");
+
+    // Ticket Notes Elements
     const noteForm = document.getElementById("note-form");
     const notesList = document.getElementById("notes-list");
     const searchInput = document.getElementById("search-input");
@@ -198,8 +278,9 @@
 
     let currentUser = null;
     let unsubscribeNotes = null;
-    let allNotes = [];
+    let allDocs = [];
     let showOnlyPending = false;
+    let scratchpadTimeout = null;
 
     function showError(msg) {
       authError.textContent = msg;
@@ -244,6 +325,7 @@
         authContainer.classList.add("hidden");
         appContainer.classList.remove("hidden");
         userEmailSpan.textContent = `Logged in as: ${user.email}`;
+        loadScratchpad(user.uid);
         subscribeToNotes(user.uid);
       } else {
         authContainer.classList.remove("hidden");
@@ -252,23 +334,145 @@
       }
     });
 
-    // Real-time Firestore Listener (Sorted newest-first in JS so no index setup is needed)
+    // =========================================================================
+    // 1. LIVE AUTO-SAVING SCRATCHPAD (Stored in `agent_notes/scratchpad_{uid}`)
+    // =========================================================================
+    async function loadScratchpad(uid) {
+      try {
+        const scratchDoc = await getDoc(doc(db, "agent_notes", `scratchpad_${uid}`));
+        if (scratchDoc.exists()) {
+          scratchpadArea.value = scratchDoc.data().content || "";
+        } else {
+          scratchpadArea.value = "";
+        }
+      } catch (err) {
+        console.error("Scratchpad load error:", err);
+      }
+    }
+
+    scratchpadArea.addEventListener("input", () => {
+      if (!currentUser) return;
+      scratchpadStatus.textContent = "Saving...";
+      scratchpadStatus.className = "text-xs text-amber-400";
+      clearTimeout(scratchpadTimeout);
+
+      scratchpadTimeout = setTimeout(async () => {
+        try {
+          await setDoc(doc(db, "agent_notes", `scratchpad_${currentUser.uid}`), {
+            uid: currentUser.uid,
+            recordType: "scratchpad",
+            content: scratchpadArea.value,
+            updatedAtMs: Date.now()
+          });
+          scratchpadStatus.textContent = "Saved ✓";
+          scratchpadStatus.className = "text-xs text-emerald-400";
+        } catch (err) {
+          scratchpadStatus.textContent = "Save Error";
+          scratchpadStatus.className = "text-xs text-red-400";
+        }
+      }, 600);
+    });
+
+    copyScratchpadBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(scratchpadArea.value);
+      scratchpadStatus.textContent = "Copied to clipboard!";
+    });
+
+    clearScratchpadBtn.addEventListener("click", async () => {
+      if (!currentUser || !scratchpadArea.value) return;
+      if (confirm("Clear the entire scratchpad?")) {
+        scratchpadArea.value = "";
+        await setDoc(doc(db, "agent_notes", `scratchpad_${currentUser.uid}`), {
+          uid: currentUser.uid,
+          recordType: "scratchpad",
+          content: "",
+          updatedAtMs: Date.now()
+        });
+        scratchpadStatus.textContent = "Cleared ✓";
+      }
+    });
+
+    // =========================================================================
+    // 2. REAL-TIME LISTENER FOR BOTH SHIFT LOGS & TICKET NOTES
+    // =========================================================================
     function subscribeToNotes(uid) {
       const q = query(
         collection(db, "agent_notes"),
         where("uid", "==", uid)
       );
       unsubscribeNotes = onSnapshot(q, (snapshot) => {
-        allNotes = snapshot.docs
+        allDocs = snapshot.docs
           .map(d => ({ id: d.id, ...d.data() }))
+          .filter(d => d.recordType !== "scratchpad")
           .sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
-        renderNotes();
+
+        renderShiftEvents();
+        renderTicketNotes();
       }, (err) => {
         notesList.innerHTML = `<div class="bg-red-900/40 border border-red-500 p-4 rounded-xl text-red-200 text-sm">Firestore Error: ${escapeHtml(err.message)}</div>`;
       });
     }
 
-    // Add New Note
+    // =========================================================================
+    // 3. SHIFT EVENTS & PROBLEMS LOG
+    // =========================================================================
+    shiftEventForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const eventType = document.getElementById("shift-event-type").value;
+      const eventText = document.getElementById("shift-event-text").value.trim();
+      if (!eventText) return;
+
+      await addDoc(collection(db, "agent_notes"), {
+        uid: currentUser.uid,
+        recordType: "shift_event",
+        eventType,
+        content: eventText,
+        createdAt: serverTimestamp(),
+        createdAtMs: Date.now()
+      });
+
+      document.getElementById("shift-event-text").value = "";
+    });
+
+    function renderShiftEvents() {
+      const term = searchInput.value.toLowerCase();
+      const shiftEvents = allDocs.filter(d => {
+        if (d.recordType !== "shift_event") return false;
+        return (
+          (d.eventType || "").toLowerCase().includes(term) ||
+          (d.content || "").toLowerCase().includes(term)
+        );
+      });
+
+      if (shiftEvents.length === 0) {
+        shiftEventsList.innerHTML = `<div class="bg-slate-900/50 border border-slate-800 p-3 rounded-lg text-center text-slate-500 text-xs">No shift events or problems logged yet.</div>`;
+        return;
+      }
+
+      shiftEventsList.innerHTML = shiftEvents.map(ev => {
+        const dateStr = ev.createdAtMs ? new Date(ev.createdAtMs).toLocaleString() : "";
+        return `
+          <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-700/80 flex justify-between items-start gap-3">
+            <div class="space-y-1 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-semibold text-sky-300 bg-sky-950/80 border border-sky-800 px-2 py-0.5 rounded">${escapeHtml(ev.eventType)}</span>
+                <span class="text-[11px] text-slate-500">${escapeHtml(dateStr)}</span>
+              </div>
+              <p dir="auto" class="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">${escapeHtml(ev.content)}</p>
+            </div>
+            <button onclick="window.deleteNote('${ev.id}')" class="text-xs text-red-400 hover:text-red-300 px-2 py-1">
+              ✕
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // =========================================================================
+    // 4. CUSTOMER TICKET NOTES
+    // =========================================================================
     noteForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!currentUser) return;
@@ -281,6 +485,7 @@
 
       await addDoc(collection(db, "agent_notes"), {
         uid: currentUser.uid,
+        recordType: "ticket",
         orderId,
         provider,
         issue,
@@ -293,10 +498,10 @@
       noteForm.reset();
     });
 
-    // Render Notes with Search & Filter
-    function renderNotes() {
+    function renderTicketNotes() {
       const term = searchInput.value.toLowerCase();
-      const filtered = allNotes.filter(n => {
+      const filtered = allDocs.filter(n => {
+        if (n.recordType === "shift_event") return false;
         const matchesPending = showOnlyPending ? n.isPending : true;
         const matchesSearch = 
           (n.orderId || "").toLowerCase().includes(term) ||
@@ -307,7 +512,7 @@
       });
 
       if (filtered.length === 0) {
-        notesList.innerHTML = `<div class="bg-slate-800/50 border border-slate-800 p-6 rounded-xl text-center text-slate-500 text-sm">No notes yet. Add your first call/ticket note on the left!</div>`;
+        notesList.innerHTML = `<div class="bg-slate-800/50 border border-slate-800 p-6 rounded-xl text-center text-slate-500 text-sm">No ticket notes found.</div>`;
         return;
       }
 
@@ -340,9 +545,9 @@
       `}).join("");
     }
 
-    // Inline button actions
+    // Inline Actions
     window.deleteNote = async (id) => {
-      if (confirm("Delete this note permanently?")) {
+      if (confirm("Delete this entry permanently?")) {
         await deleteDoc(doc(db, "agent_notes", id));
       }
     };
@@ -352,7 +557,7 @@
     };
 
     window.copyNote = (id) => {
-      const note = allNotes.find(n => n.id === id);
+      const note = allDocs.find(n => n.id === id);
       if (!note) return;
       const formatted = `[Order/Ticket]: ${note.orderId}\n[Card]: ${note.provider} (${note.issue})\n[Notes]: ${note.content}`;
       navigator.clipboard.writeText(formatted);
@@ -362,18 +567,23 @@
       return String(str || "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
     }
 
-    searchInput.addEventListener("input", renderNotes);
+    searchInput.addEventListener("input", () => {
+      renderShiftEvents();
+      renderTicketNotes();
+    });
+
     filterAllBtn.addEventListener("click", () => {
       showOnlyPending = false;
       filterAllBtn.className = "text-xs bg-emerald-600 text-white px-3 py-1 rounded-md";
       filterPendingBtn.className = "text-xs bg-slate-800 border border-slate-700 text-amber-400 px-3 py-1 rounded-md";
-      renderNotes();
+      renderTicketNotes();
     });
+
     filterPendingBtn.addEventListener("click", () => {
       showOnlyPending = true;
       filterPendingBtn.className = "text-xs bg-amber-600 text-white px-3 py-1 rounded-md";
       filterAllBtn.className = "text-xs bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-md";
-      renderNotes();
+      renderTicketNotes();
     });
   </script>
 </body>
